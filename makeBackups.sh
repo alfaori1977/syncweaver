@@ -10,7 +10,7 @@ BACKUPINFO=backupList.xml
 function INIT
 {
 
-  ALL_BACKUPS=$(python $INFOSCRIPT backupList $BACKUPINFO |  awk '{printf "%s ",$0}')
+  ALL_BACKUPS=$(python3 $INFOSCRIPT backupList $BACKUPINFO |  awk '{printf "%s ",$0}')
 
   if [ "$BACKUP_LIST" == "all" ]; then
     BACKUP_LIST=$ALL_BACKUPS
@@ -37,7 +37,7 @@ PARAMETERS:  <backup_list> | all
   
   If all is specified, next backups will be considered:
 
-  * $(python $INFOSCRIPT backupList $BACKUPINFO |  awk '{printf "%s\n    ",$0}')
+  $(python3 $INFOSCRIPT backupList $BACKUPINFO |  awk '{printf "- %s\n  ",$0}')
 
 
 EXAMPLES:
@@ -87,7 +87,8 @@ BACKUP_LIST=$*
 INIT
 
 for BACKUP in $BACKUP_LIST; do
-    
+
+  FS_TRACE INFO "Starting backup for: $BACKUP"    
     $CDIR/backup.sh $ARGS $BACKUP
 
 done

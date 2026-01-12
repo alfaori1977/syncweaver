@@ -14,10 +14,11 @@ A flexible bash-based backup automation tool that uses XML configuration files t
 - **XML-based configuration**: Define all backup operations in a single, human-readable XML file
 - **Multiple backup scenarios**: Support for local-to-local, remote-to-local, and local-to-remote backups
 - **SSH connectivity**: Built-in SSH support with custom port configuration
+- **SSH Config awareness**: Automatically reads `~/.ssh/config` for hostname aliases and port configurations
 - **Selective execution**: Run specific backups or all backups at once
 - **Exclude patterns**: Define file/folder exclusion patterns per backup
 - **Flexible options**: Pass custom rsync options per backup
-- **Connectivity checks**: Pre-flight checks to ensure remote hosts are reachable
+- **Robust connectivity checks**: Pre-flight checks with SSH config integration and comprehensive error handling
 - **Verbose logging**: Optional detailed output for debugging
 
 ## Prerequisites
@@ -353,16 +354,81 @@ If you must use password authentication:
 
 4. **Migrate to SSH keys** as soon as possible for better security
 
+## SSH Configuration Integration
+
+SyncWeaver intelligently integrates with your SSH configuration file (`~/.ssh/config`), allowing you to use SSH host aliases and benefit from pre-configured settings.
+
+### Using SSH Config Aliases
+
+Define host aliases in `~/.ssh/config`:
+
+```ssh-config
+Host myserver
+    HostName 192.168.1.100
+    Port 2222
+    User myuser
+    IdentityFile ~/.ssh/id_rsa_backup
+
+Host nas
+    HostName nas.local
+    Port 22
+    User admin
+```
+
+Then reference these aliases in your backup configuration:
+
+```xml
+<backup name="server-backup">
+  <srcHost>myserver</srcHost>  <!-- Uses settings from ~/.ssh/config -->
+  <srcPath>/data/important/</srcPath>
+  <tgtPath>/mnt/backups/server/</tgtPath>
+  <options>-v</options>
+</backup>
+```
+
+### Port Override Behavior
+
+SyncWeaver has intelligent port handling:
+
+1. **SSH Config Priority**: If a host is defined in `~/.ssh/config` with a port, that port is used
+2. **XML Override**: If you specify `<srcPort>` or `<tgtPort>` in XML and it differs from the SSH config, the XML value takes precedence
+3. **Default Fallback**: If no port is specified anywhere, defaults to port 22
+
+Example with port override:
+
+```xml
+<backup name="temp-override">
+  <srcHost>myserver</srcHost>
+  <srcPort>3333</srcPort>  <!-- Overrides SSH config port 2222 -->
+  <srcPath>/tmp/data/</srcPath>
+  <tgtPath>/backups/temp/</tgtPath>
+</backup>
+```
+
+### Benefits of SSH Config Integration
+
+- **Centralized SSH settings**: Manage all SSH configurations in one place
+- **Shorter configuration**: No need to repeat port numbers and usernames
+- **ProxyJump support**: Leverage SSH tunneling and jump hosts
+- **Key management**: Use different SSH keys per host automatically
+- **Host verification**: SSH config `StrictHostKeyChecking` settings are honored
+
 ## Troubleshooting
 
 ### Connection Issues
 - Verify remote host is accessible: `nc -z <host> <port>`
 - Check SSH connectivity: `ssh -p <port> <user>@<host>`
+- Test with SSH config alias: `ssh <alias>` (if using SSH config)
 - Ensure SSH keys are properly configured
+- **New**: Check that `nc` (netcat) is installed: `which nc`
+- **New**: Verify SSH config syntax: `ssh -G <host>` shows resolved configuration
 
 ### Permission Issues
 - Verify source path permissions on remote host
-- Ensure target directory is writable
+- Ensure target directory is w
+  - **Enhanced connectivity checks** with SSH config integration
+  - Robust error handling and input validation
+  - Automatic SSH config hostname and port resolutionritable
 - Check that user has appropriate sudo rights if needed
 
 ### XML Parsing Errors

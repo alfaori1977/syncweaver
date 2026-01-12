@@ -19,17 +19,17 @@ function FS_CHECK_EXIT_STATUS
 
 function SET_DEFAULTS
 {
-  BACKUP_SRCUSER=$USER
+  BACKUP_SRCUSER=
   BACKUP_SRCHOST=__NONE__
   BACKUP_SRCPATH=""
   BACKUP_SRCPASS=__NONE__
-  BACKUP_SRCPORT=22
+  BACKUP_SRCPORT=
   
-  BACKUP_TGTUSER=$USER
+  BACKUP_TGTUSER=
   BACKUP_TGTHOST=__NONE__
   BACKUP_TGTPATH=""
   BACKUP_TGTPASS=__NONE__
-  BACKUP_TGTPORT=22
+  BACKUP_TGTPORT=
 
   BACKUP_DESC=$1
   BACKUP_EXCLUDELIST=""
@@ -44,8 +44,8 @@ function PRECHECK_AND_SET_BACKUP
     BACKUP=$1
     SET_DEFAULTS $BACKUP
     
-    echo  python $INFOSCRIPT $BACKUP $BACKUPINFO
-    if ! python $INFOSCRIPT $BACKUP $BACKUPINFO > $TMP_FILE 2>>$LOG_FILE_ERR ; then
+    FS_TRACE DEBUG  "python3 $INFOSCRIPT $BACKUP $BACKUPINFO"
+    if ! python3 $INFOSCRIPT $BACKUP $BACKUPINFO > $TMP_FILE 2>>$LOG_FILE_ERR ; then
 	FS_TRACE ERROR "$BACKUP info couldn't be selected from configuration file (PHASE:$CURRENT_PHASE)"   
 	exit -1 
     else
@@ -66,19 +66,63 @@ function CHECK_CONNECTIVITY_NC
     timeout 2 nc -z $_HOST $_PORT
     FS_CHECK_EXIT_STATUS $? "Couldn't establish remote connection with $BACKUP_HOST:$BACKUP_PORT"
 }
+
 function CHECK_CONNECTIVITY 
 {
     local SSH_HOST="$1"
+    local SSH_PORT="$2"
+
+    # Validate input
+    if [ -z "$SSH_HOST" ]; then
+        FS_TRACE ERROR "SSH_HOST parameter is empty"
+        return 1
+    fi
 
     local HOST
     local PORT
 
-    HOST=$(ssh -G "$SSH_HOST" | awk '/^hostname / {print $2}')
-    PORT=$(ssh -G "$SSH_HOST" | awk '/^port / {print $2}')
+    # Extract hostname and port from SSH config (considers ~/.ssh/config)
+    HOST=$(ssh -G "$SSH_HOST" 2>/dev/null | awk '/^hostname / {print $2}')
+    PORT=$(ssh -G "$SSH_HOST" 2>/dev/null | awk '/^port / {print $2}')
 
-    echo "nc -z $HOST $PORT"
-    timeout 2 nc -z "$HOST" "$PORT"
+    # Check if hostname resolution was successful
+    if [ -z "$HOST" ]; then
+        FS_TRACE ERROR "Could not resolve hostname for '$SSH_HOST' from SSH config"
+        return 1
+    fi
+
+    # Default port to 22 if not found in config
+    if [ -z "$PORT" ]; then
+        FS_TRACE WARNING "Could not resolve port for '$SSH_HOST' from SSH config, using default port 22"
+        PORT=22
+    fi
+
+    # Override port if user explicitly specified it and it differs from config
+    if [ -n "$SSH_PORT" ] && [ "$SSH_PORT" != "22" ] && [ "$SSH_PORT" != "$PORT" ]; then
+        FS_TRACE WARNING "Overriding SSH config port $PORT with user specified port $SSH_PORT"
+        PORT=$SSH_PORT
+    elif [ -n "$SSH_PORT" ] && [ "$SSH_PORT" != "22" ] && [ "$PORT" = "22" ]; then
+        FS_TRACE WARNING "Using user specified port $SSH_PORT instead of default"
+        PORT=$SSH_PORT
+    fi
+
+    # Check if nc command is available
+    if ! command -v nc &> /dev/null; then
+        FS_TRACE ERROR "nc (netcat) command not found. Please install netcat."
+        return 1
+    fi
+
+    # Perform connectivity check
+    FS_TRACE DEBUG "Testing connectivity to $HOST:$PORT"
+    if timeout 2 nc -z "$HOST" "$PORT" 2>/dev/null; then
+        FS_TRACE DEBUG "Successfully connected to $HOST:$PORT"
+        return 0
+    else
+        FS_TRACE ERROR "Could not establish connection to $HOST:$PORT"
+        return 1
+    fi
 }
+
 function FS_CREATE_TGT_DIR
 {
     if [ ! -d $BACKUP_TGTPATH ]; then
@@ -110,7 +154,16 @@ function RSYNC_REMOTE_TO_LOCAL
     
     CHECK_CONNECTIVITY $BACKUP_SRCHOST $BACKUP_SRCPORT
 
-    BACKUP_COMMAND="rsync -a  -e \"ssh -p $BACKUP_SRCPORT\" $BACKUP_OPTIONS $EXCLUDE_OPTIONS $BACKUP_SRCUSER@$BACKUP_SRCHOST:$BACKUP_SRCPATH $BACKUP_TGTPATH"
+    E_SSH_OPTIONS=""
+    if [ -n "$BACKUP_SRCPORT" ]; then        
+        E_SSH_OPTIONS="-e \"ssh -p $BACKUP_SRCPORT\""
+    fi
+    _SSH_USER=""
+    if [ -n "$BACKUP_SRCUSER" ]; then
+        _SSH_USER="$BACKUP_SRCUSER@"
+    fi
+
+    BACKUP_COMMAND="rsync -a $E_SSH_OPTIONS $BACKUP_OPTIONS $EXCLUDE_OPTIONS ${_SSH_USER}$BACKUP_SRCHOST:$BACKUP_SRCPATH $BACKUP_TGTPATH"
     PASSWORD=$BACKUP_SRCPASS
       
 }
@@ -181,19 +234,19 @@ function RSYNC_BACKUP
 
   
   
-  if [ 1 -eq 0 ] ; then
-      FS_TRACE INFO "$BACKUP_COMMAND"
-      echo expect -f $EXPECT Local \
-	  -password $PASSWORD \
-	  -command "$BACKUP_COMMAND"
-      expect -f $EXPECT Local \
-	  -password $PASSWORD \
-	  -command "$BACKUP_COMMAND"
-      FS_CHECK_EXIT_STATUS ${PIPESTATUS[0]} "Error Syncring Task $BACKUP_NAME"
+  if [ $BACKUP_SRCPASS == "__NONE__" -a $BACKUP_TGTPASS == "__NONE__" ]; then
+    FS_TRACE INFO "$BACKUP_COMMAND"
+    eval $BACKUP_COMMAND | tee -a $LOG_FILE_OUT
+    FS_CHECK_EXIT_STATUS ${PIPESTATUS[0]} "Error Syncring Task $BACKUP_NAME"
   else
-      eval $BACKUP_COMMAND | tee -a $LOG_FILE_OUT
-      FS_CHECK_EXIT_STATUS ${PIPESTATUS[0]} "Error Syncring Task $BACKUP_NAME"
-      
+    FS_TRACE INFO "$BACKUP_COMMAND"
+    echo expect -f $EXPECT Local \
+	  -password $PASSWORD \
+	  -command "$BACKUP_COMMAND"
+    expect -f $EXPECT Local \
+	  -password $PASSWORD \
+	  -command "$BACKUP_COMMAND"
+    FS_CHECK_EXIT_STATUS ${PIPESTATUS[0]} "Error Syncring Task $BACKUP_NAME"      
   fi
 
   
