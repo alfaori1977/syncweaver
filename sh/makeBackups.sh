@@ -1,8 +1,16 @@
 CDIR=$(cd $(dirname $0); pwd)
+CROOT=$(cd $CDIR/..; pwd)
+export USER_DIR=$(pwd -L 2>/dev/null || pwd)
 
-. $CDIR/commonVars
-INFOSCRIPT=$CDIR/getBackupInfo.py
-. $CDIR/utils.sh
+export VARS_DIR=$CROOT/vars
+export PYTHON_DIR=$CROOT/python
+export SH_DIR=$CROOT/sh
+
+. $VARS_DIR/commonVars
+. $USER_DIR/commonVars 2>/dev/null 
+
+export INFOSCRIPT=$PYTHON_DIR/getBackupInfo.py
+. $SH_DIR/utils.sh
 
 
 BACKUPINFO=backupList.xml
@@ -89,6 +97,6 @@ INIT
 for BACKUP in $BACKUP_LIST; do
 
   FS_TRACE INFO "Starting backup for: $BACKUP"    
-    $CDIR/backup.sh $ARGS $BACKUP
+    $SH_DIR/backup.sh $ARGS $BACKUP
 
 done

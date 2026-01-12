@@ -45,7 +45,16 @@ A flexible bash-based backup automation tool that uses XML configuration files t
 
 3. Ensure scripts are executable:
    ```bash
-   chmod +x makeBackups.sh backup.sh
+   chmod +x bin/makeBackups.sh sh/*.sh sh/*.exp
+   ```
+
+4. (Optional) Create a local `commonVars` file in your working directory to override default settings:
+   ```bash
+   # Create custom configuration in your backup directory
+   cat > commonVars << 'EOF'
+   LOG_FILE=/path/to/your/custom/backup.log
+   # Add other custom variables here
+   EOF
    ```
 
 ## Configuration
@@ -190,7 +199,7 @@ Each `<backup>` element supports the following child elements:
 ### Basic Syntax
 
 ```bash
-./makeBackups.sh [-B <backupXmlFile>] [-v] <backup_list> | all
+./bin/makeBackups.sh [-B <backupXmlFile>] [-v] <backup_list> | all
 ```
 
 ### Options
@@ -208,59 +217,80 @@ Each `<backup>` element supports the following child elements:
 
 1. **Run all backups with verbose output:**
    ```bash
-   ./makeBackups.sh -v all
+   ./bin/makeBackups.sh -v all
    ```
 
 2. **Run specific backups:**
    ```bash
-   ./makeBackups.sh backup1 backup2 backup3
+   ./bin/makeBackups.sh backup1 backup2 backup3
    ```
 
 3. **Run with custom configuration file:**
    ```bash
-   ./makeBackups.sh -B /path/to/custom-config.xml all
+   ./bin/makeBackups.sh -B /path/to/custom-config.xml all
    ```
 
 4. **Run a single backup verbosely:**
    ```bash
-   ./makeBackups.sh -v camera@poco7_2_photo@d
+   ./bin/makeBackups.sh -v camera@poco7_2_photo@d
    ```
 
 5. **List all available backups:**
    ```bash
-   python getBackupInfo.py backupList sample/backupList.xml
+   python3 python/getBackupInfo.py backupList sample/backupList.xml
    ```
 
 ## Project Structure
 
 ```
 syncweaver/
-├── backup.sh              # Core backup execution script
-├── makeBackups.sh         # Main entry point
-├── commonVars             # Common variables and settings
-├── getBackupInfo.py       # XML parser for backup configurations
-├── getProductInfo.py      # Product information utility
-├── utils.sh               # Utility functions
-├── m_scp_exec.exp         # Expect script for password authentication
-├── rsyncR2R.sh            # Remote-to-remote rsync helper
+├── bin/
+│   └── makeBackups.sh     # Main entry point script
+├── python/
+│   ├── getBackupInfo.py   # XML parser for backup configurations
+│   └── getProductInfo.py  # Product information utility
+├── sh/
+│   ├── backup.sh          # Core backup execution script
+│   ├── makeBackups.sh     # Alternative entry point (legacy)
+│   ├── m_scp_exec.exp     # Expect script for password authentication
+│   ├── rsyncR2R.sh        # Remote-to-remote rsync helper
+│   └── utils.sh           # Utility functions and logging
+├── vars/
+│   └── commonVars         # Common variables and settings
 ├── sample/
 │   └── backupList.xml     # Sample configuration file
 └── README.md              # This file
 ```
 
+### Modular Directory Structure
+
+SyncWeaver uses a modular directory structure for better organization:
+
+- **`bin/`** - Contains the main executable entry point that users should run
+- **`python/`** - Python scripts for XML parsing and configuration processing
+- **`sh/`** - Shell scripts for backup operations, utilities, and expect automation
+- **`vars/`** - Configuration variables and default settings
+- **`sample/`** - Example configuration files
+
+This structure allows for:
+- Clean separation of concerns
+- Easy installation in system directories (e.g., `/usr/local/syncweaver`)
+- Local configuration overrides (place `commonVars` in your working directory)
+- Better maintainability and extensibility
+
 ## How It Works
 
-1. **Configuration Parsing**: The `getBackupInfo.py` script parses the XML configuration file and extracts backup parameters.
+1. **Configuration Parsing**: The `python/getBackupInfo.py` script parses the XML configuration file and extracts backup parameters.
 
-2. **Backup Selection**: The `makeBackups.sh` script processes command-line arguments to determine which backups to run.
+2. **Backup Selection**: The `bin/makeBackups.sh` script processes command-line arguments to determine which backups to run.
 
-3. **Execution**: For each selected backup, `backup.sh` is invoked with the appropriate parameters:
+3. **Execution**: For each selected backup, `sh/backup.sh` is invoked with the appropriate parameters:
    - Determines backup type (remote-to-local, local-to-remote, or local-to-local)
-   - Performs connectivity checks for remote hosts
+   - Performs connectivity checks for remote hosts using SSH config integration
    - Creates target directories if needed
    - Executes rsync with configured options and exclusions
 
-4. **Logging**: All operations are logged for audit and debugging purposes.
+4. **Logging**: All operations are logged with detailed output to `/tmp/syncweaver.log` (configurable via `vars/commonVars`).
 
 ## Authentication Methods
 
@@ -329,7 +359,7 @@ For local-to-remote backups with password:
 
 #### How Password Authentication Works
 
-1. When `srcPass` or `tgtPass` is specified, the tool uses the `m_scp_exec.exp` expect script
+1. When `srcPass` or `tgtPass` is specified, the tool uses the `sh/m_scp_exec.exp` expect script
 2. The expect script automatically responds to SSH password prompts
 3. It also handles SSH host key verification prompts (answering "yes" automatically)
 4. The password is passed securely to the expect script via command-line arguments
@@ -419,17 +449,17 @@ Example with port override:
 - Verify remote host is accessible: `nc -z <host> <port>`
 - Check SSH connectivity: `ssh -p <port> <user>@<host>`
 - Test with SSH config alias: `ssh <alias>` (if using SSH config)
+- Review resolved SSH configuration: `ssh -G <host>` shows how SSH interprets your config
 - Ensure SSH keys are properly configured
-- **New**: Check that `nc` (netcat) is installed: `which nc`
-- **New**: Verify SSH config syntax: `ssh -G <host>` shows resolved configuration
+- Check that `nc` (netcat) is installed: `which nc` or `sudo apt-get install netcat`
+- Verify SSH config syntax and permissions: `chmod 600 ~/.ssh/config`
+- Test connectivity check function: The script uses `nc -z` with a 2-second timeout
 
 ### Permission Issues
 - Verify source path permissions on remote host
-- Ensure target directory is w
-  - **Enhanced connectivity checks** with SSH config integration
-  - Robust error handling and input validation
-  - Automatic SSH config hostname and port resolutionritable
+- Ensure target directory is writable
 - Check that user has appropriate sudo rights if needed
+- Review log files at `/tmp/syncweaver.log` and `/tmp/syncweaver.err` for detailed error messages
 
 ### XML Parsing Errors
 - Validate XML syntax: `xmllint --noout backupList.xml`
@@ -486,11 +516,16 @@ Created with ❤️ for sysadmins, power users, and anyone who values their data
 ## Version History
 
 - **v1.2** (2026) - Current stable release
+  - **Modular directory structure** - Organized into `bin/`, `python/`, `sh/`, `vars/`, and `sample/` directories
+  - **Enhanced connectivity checks** with SSH config integration
+  - Robust error handling and input validation
+  - Automatic SSH config hostname and port resolution
   - XML-based configuration
   - Password and SSH key authentication
   - Multi-scenario support (local, remote, bidirectional)
   - Smart exclusion patterns
   - Selective backup execution
+  - Local configuration override support
 
 ## Contributing
 

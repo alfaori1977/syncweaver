@@ -1,7 +1,9 @@
 CDIR=$(dirname $0)
 
-. $CDIR/commonVars
-EXPECT=$CDIR/m_scp_exec.exp
+. $VARS_DIR/commonVars
+. $USER_DIR/commonVars 2>/dev/null 
+
+EXPECT=$SH_DIR/m_scp_exec.exp
 function timeout() { /usr/bin/perl -e 'alarm shift; exec @ARGV' "$@"; }
 
 function FS_CHECK_EXIT_STATUS
@@ -57,16 +59,6 @@ function PRECHECK_AND_SET_BACKUP
 
 }
 
-
-function CHECK_CONNECTIVITY_NC
-{
-    _HOST=$1
-    _PORT=$2
-    echo nc -z $_HOST $_PORT
-    timeout 2 nc -z $_HOST $_PORT
-    FS_CHECK_EXIT_STATUS $? "Couldn't establish remote connection with $BACKUP_HOST:$BACKUP_PORT"
-}
-
 function CHECK_CONNECTIVITY 
 {
     local SSH_HOST="$1"
@@ -118,7 +110,7 @@ function CHECK_CONNECTIVITY
         FS_TRACE DEBUG "Successfully connected to $HOST:$PORT"
         return 0
     else
-        FS_TRACE ERROR "Could not establish connection to $HOST:$PORT"
+        FS_TRACE FATAL "Could not establish connection to $HOST:$PORT"
         return 1
     fi
 }
@@ -332,6 +324,8 @@ BACKUP=$1
 
 export JOBS=$JOBS
 
+trap CLEANUP EXIT
+
 INIT
 
 FS_TRACE_PHASE INFO " *** BACKUP: $BACKUP ***"
@@ -342,4 +336,3 @@ PRECHECK_AND_SET_BACKUP $BACKUP
 RSYNC_BACKUP
 
 CLEANUP
-

@@ -1,4 +1,0 @@
-CMD_NAME=$(basename $0)
-LOG_FILE=_default
-TMP_FILE=/tmp/__backupInfo.$$.tmp
-INFOSCRIPT=$CDIR/getBackupInfo.py
