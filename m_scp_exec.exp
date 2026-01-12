@@ -1,0 +1,81 @@
+proc Local {args} {  
+    array set _args $args
+    log_user 1
+    
+    set timeout -1
+
+    eval spawn "$_args(-command)"
+    expect {
+	-re {[pP]assword:} {
+	    send "$_args(-password)\r"
+	    send "\rVPVEND"
+	    exp_continue
+	}
+        
+	"(yes/no)? " {
+	    send "yes\r"
+	    exp_continue
+	}
+	-re VPVEND {
+	   exit
+	}
+
+	eof {}
+    }
+}
+
+proc Exec {args} {  
+  array set _args $args
+  log_user 0
+  set reg_prompt "@?$_args(-host)\[: \]?\[^\$>\]*\[\$>\] "
+  
+  set v_init_mark "\\I\\N\\I\\M\\A\\R\\K"
+  set v_end_mark "\\V\\P\\V\\M\\A\\R\\K"
+  set timeout -1
+  spawn ssh $_args(-host) -l $_args(-user)
+  expect {
+    "password:" {
+      send "$_args(-password)\r"
+      exp_continue
+    }
+    "(yes/no)? " {
+      send "yes\r"
+      exp_continue
+    }
+    -re $reg_prompt {
+      send "echo $v_init_mark;$_args(-command);echo $v_end_mark\r"
+      log_user 1
+      expect {
+        eof {}
+        VPVMARK {}
+      }
+    }
+    eof {}
+  }
+}
+
+proc Scp {args} {
+  array set _args $args
+  
+  spawn /usr/bin/scp $_args(-orig) $_args(-dest)
+  log_user 1
+  set timeout -1
+  puts VPVBEGIN
+  expect {
+    "password:" {
+      send "$_args(-password)\r"
+      exp_continue
+    }
+    "(yes/no)? " {
+      send "yes\r"
+      exp_continue
+    }
+    eof {
+      puts VPVEND
+    }
+  }
+  puts "error timeout: scp $_args(-orig) $_args(-dest)"
+}
+
+
+eval $argv

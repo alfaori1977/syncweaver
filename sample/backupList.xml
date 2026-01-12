@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="utf-8"?>
+<backupList>
+  
+  <backup name="camera@poco7_2_photo@d">
+
+    <srcUser>alfaori</srcUser>
+    <srcHost>192.168.1.33</srcHost>
+    <srcPort>2222</srcPort>
+    <srcPath>/storage/emulated/0/DCIM/Camera/</srcPath>
+    <tgtPath>/mnt/d/photo/MisFotos/Fotos_Movil/POCO_X7_Pro/DCIM/Camera/</tgtPath>
+    <excludeList>nohup.out*</excludeList>
+    <options>-vn</options>
+  </backup>
+
+
+  <backup name="photo@d_2_4TB@pi">
+
+    <srcUser>alfaori</srcUser>
+    <srcPath>/mnt/d/photo/</srcPath>
+    <excludeList>nohup.out*</excludeList>
+    <tgtHost>pi</tgtHost>
+    <tgtPath>/media/alfaori/4TB/photo/</tgtPath>
+    <options>-vn</options>
+  </backup>
+
+  
+  <backup name="bw@joa.clubcerberus.com">
+
+    <srcUser>root</srcUser>
+    <srcHost>joa.clubcerberus.com</srcHost>
+    <srcPath>/home/bitwarden/bwdata/</srcPath>
+    <excludeList>nohup.out*</excludeList>
+    
+    <tgtPath>$HOME/BACKUPS/bw@joa.clubcerberus.com/bwdata/</tgtPath>
+    <options>-v</options>
+  </backup>
+
+  <backup name="root@agu.clubcerberus.com">
+
+    <srcUser>root</srcUser>
+    <srcHost>agu.clubcerberus.com</srcHost>
+    <srcPath>scripts/</srcPath>
+    <excludeList>nohup.out*</excludeList>
+    
+    <tgtPath>$HOME/BACKUPS/root@agu.clubcerberus.com/scripts/</tgtPath>
+    <options>-v</options>
+  </backup>
+
+  <backup name="root@joa.clubcerberus.com">
+
+    <srcUser>root</srcUser>
+    <srcHost>joa.clubcerberus.com</srcHost>
+    <srcPath>scripts/</srcPath>
+    <excludeList>nohup.out*</excludeList>
+    
+    <tgtPath>$HOME/BACKUPS/root@joa.clubcerberus.com/scripts/</tgtPath>
+    <options>-v</options>
+  </backup>
+
+  <backup name="root@chia.clubcerberus.com">
+
+    <srcUser>root</srcUser>
+    <srcHost>chia.clubcerberus.com</srcHost>
+    <srcPath>scripts/</srcPath>
+    <excludeList>nohup.out*</excludeList>
+    
+    <tgtPath>$HOME/BACKUPS/root@chia.clubcerberus.com/scripts/</tgtPath>
+    <options>-v</options>
+  </backup>
+
+
+  <backup name="root@rpc.dexynth.com">
+
+    <srcUser>root</srcUser>
+    <srcHost>rpc.dexynth.com</srcHost>
+    <srcPath>scripts/</srcPath>
+    <excludeList>nohup.out*</excludeList>
+    
+    <tgtPath>$HOME/BACKUPS/root@rpc.dexynth.com/scripts/</tgtPath>
+    <options>-v</options>
+  </backup>
+
+  <backup name="root@testnet@rpc.dexynth.com">
+
+    <srcUser>root</srcUser>
+    <srcHost>rpc.dexynth.com</srcHost>
+    <srcPath>testnet/</srcPath>
+    
+    <tgtPath>$HOME/BACKUPS/root@rpc.dexynth.com/testnet/</tgtPath>
+    <excludeList>node/</excludeList>
+    <options>-v</options>
+  </backup>
+
+  <backup name="root@testnet@rpc.dexynth.com">
+
+    <srcUser>root</srcUser>
+    <srcHost>rpc.dexynth.com</srcHost>
+    <srcPath>mainnet/</srcPath>
+    
+    <tgtPath>$HOME/BACKUPS/root@rpc.dexynth.com/mainnet/</tgtPath>
+    <excludeList>node/ nohup.out*</excludeList>
+    <options>-v</options>
+  </backup>
+
+
+  <backup name="root@ds1.dexynth.com">
+
+    <srcUser>root</srcUser>
+    <srcHost>ds1.dexynth.com</srcHost>
+    <srcPath></srcPath>
+    <excludeList>*_debug *.log</excludeList>
+
+    <tgtPath>$HOME/BACKUPS/root@ds1.dexynth.com/</tgtPath>
+    <options>-v</options>
+  </backup>  
+  <backup name="root@ds2.dexynth.com">
+
+    <srcUser>root</srcUser>
+    <srcHost>ds2.dexynth.com</srcHost>
+    <srcPath></srcPath>
+    <excludeList>*_debug *.log</excludeList>
+
+    <tgtPath>$HOME/BACKUPS/root@ds2.dexynth.com/</tgtPath>
+    <options>-v</options>
+  </backup>  
+  <backup name="root@ds3.dexynth.com">
+
+    <srcUser>root</srcUser>
+    <srcHost>ds3.dexynth.com</srcHost>
+    <srcPath></srcPath>
+    <excludeList>*_debug *.log</excludeList>
+
+    <tgtPath>$HOME/BACKUPS/root@ds3.dexynth.com/</tgtPath>
+    <options>-v</options>
+  </backup>  
+  <backup name="root@ds4.dexynth.com">
+
+    <srcUser>root</srcUser>
+    <srcHost>ds4.dexynth.com</srcHost>
+    <srcPath></srcPath>
+    <excludeList>*_debug *.log</excludeList>
+
+    <tgtPath>$HOME/BACKUPS/root@ds4.dexynth.com/</tgtPath>
+    <options>-v</options>
+  </backup>  
+  <backup name="root@ds5.dexynth.com">
+
+    <srcUser>root</srcUser>
+    <srcHost>ds5.dexynth.com</srcHost>
+    <srcPath></srcPath>
+    <excludeList>*_debug *.log</excludeList>
+
+    <tgtPath>$HOME/BACKUPS/root@ds5.dexynth.com/</tgtPath>
+    <options>-v</options>
+  </backup>  
+  <backup name="root@ds6.dexynth.com">
+
+    <srcUser>root</srcUser>
+    <srcHost>ds6.dexynth.com</srcHost>
+    <srcPath></srcPath>
+    <excludeList>*_debug *.log</excludeList>
+
+    <tgtPath>$HOME/BACKUPS/root@ds6.dexynth.com/</tgtPath>
+    <options>-v</options>
+  </backup>  
+  <backup name="dexynth@ds7.dexynth.com">
+
+    <srcUser>dexynth</srcUser>
+    <srcHost>ds7.dexynth.com</srcHost>
+    <srcPath></srcPath>
+    <excludeList>*_debug *.log</excludeList>
+
+    <tgtPath>$HOME/BACKUPS/dexynth@ds7.dexynth.com/</tgtPath>
+    <options>-v</options>
+  </backup>  
+  <backup name="dexynth@ds8.dexynth.com">
+
+    <srcUser>dexynth</srcUser>
+    <srcHost>ds8.dexynth.com</srcHost>
+    <srcPath></srcPath>
+    <excludeList>*_debug *.log</excludeList>
+
+    <tgtPath>$HOME/BACKUPS/dexynth@ds8.dexynth.com/</tgtPath>
+    <options>-v</options>
+  </backup>  
+  
+  <backup name="root@Myria-Nodes">
+
+    <srcUser>root</srcUser>
+    <srcHost>Myria-Nodes</srcHost>
+    <srcPath></srcPath>
+    <excludeList>*_debug *.log</excludeList>
+
+    <tgtPath>$HOME/BACKUPS/root@Myria-Nodes/</tgtPath>
+    <options>-v</options>
+  </backup>  
+  
+</backupList>
+
+
+
+
