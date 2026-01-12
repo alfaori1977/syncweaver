@@ -56,7 +56,7 @@ EXAMPLES:
 EOF
 }
 
-while getopts :hvB:L: name
+while getopts :hvB:L:E name
 do
     case $name in
 	h)
@@ -66,7 +66,10 @@ do
 	B) 
 	    export BACKUPINFO=$OPTARG
 	    ;;
-	:)
+  X)
+      export EXPAND_BACKUP_XML_FILE=true
+      ;;
+  :)
 	    echo "Option $OPTARG requires argument"
 	    FS_USAGE
 	    exit 1
@@ -89,8 +92,12 @@ if [ $# -eq 0 ]; then
   exit 2
 fi
 
-BACKUP_LIST=$*
+if $EXPAND_BACKUP_XML_FILE; then
+  FS_EXPAND_FILE $BACKUPINFO ${BACKUPINFO}.expanded
+  export BACKUPINFO=${BACKUPINFO}.expanded
+fi
 
+BACKUP_LIST=$*
 
 INIT
 

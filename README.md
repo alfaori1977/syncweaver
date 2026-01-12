@@ -169,6 +169,14 @@ Each `<backup>` element supports the following child elements:
 </backup>
 ```
 
+**Note**: Environment variables in XML files are expanded at runtime by the backup script. If you need to pre-expand all variables before processing (for complex variable references or nested variables), use the `-X` option:
+
+```bash
+./bin/makeBackups.sh -X -B backupList.xml all
+```
+
+This creates a temporary expanded version of the XML file where all environment variables are resolved before the backup configuration is parsed.
+
 #### 7. Bidirectional Sync Setup (NAS to External Drive)
 ```xml
 <!-- Backup from NAS to local drive -->
@@ -199,12 +207,13 @@ Each `<backup>` element supports the following child elements:
 ### Basic Syntax
 
 ```bash
-./bin/makeBackups.sh [-B <backupXmlFile>] [-v] <backup_list> | all
+./bin/makeBackups.sh [-B <backupXmlFile>] [-X] [-v] <backup_list> | all
 ```
 
 ### Options
 
 - `-B <backupXmlFile>` : Specify a custom XML configuration file (default: `backupList.xml`)
+- `-X` : Expand environment variables in the XML configuration file before processing
 - `-v` : Enable verbose mode for detailed output
 - `-h` : Display help message
 
@@ -239,6 +248,12 @@ Each `<backup>` element supports the following child elements:
    ```bash
    python3 python/getBackupInfo.py backupList sample/backupList.xml
    ```
+
+6. **Expand environment variables in XML before processing:**
+   ```bash
+   ./bin/makeBackups.sh -X -B config-with-variables.xml all
+   ```
+   This is useful when your XML file contains environment variables like `$HOME`, `$USER`, or custom variables that need to be expanded before the configuration is processed.
 
 ## Project Structure
 
@@ -518,6 +533,7 @@ Created with ❤️ for sysadmins, power users, and anyone who values their data
 - **v1.2** (2026) - Current stable release
   - **Modular directory structure** - Organized into `bin/`, `python/`, `sh/`, `vars/`, and `sample/` directories
   - **Enhanced connectivity checks** with SSH config integration
+  - **XML variable expansion** - New `-X` option to pre-expand environment variables in configuration files
   - Robust error handling and input validation
   - Automatic SSH config hostname and port resolution
   - XML-based configuration
