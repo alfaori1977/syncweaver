@@ -284,7 +284,7 @@ EOF
 
 VERBOSE=NO
 
-while getopts :hvB:L: name
+while getopts :hvB:L:X name
 do
     case $name in
 	h)
@@ -298,7 +298,10 @@ do
 	    ;;
 	B) 
 	    BACKUP_XML=$OPTARG
-	    ;;
+	    ;;  
+    X)
+      export EXPAND_BACKUP_XML_FILE=true
+      ;;
 	v)
 	    VERBOSE=YES
 	    ;;

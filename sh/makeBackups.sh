@@ -56,7 +56,7 @@ EXAMPLES:
 EOF
 }
 
-while getopts :hvB:L:E name
+while getopts :hvB:L:X name
 do
     case $name in
 	h)
@@ -105,5 +105,5 @@ for BACKUP in $BACKUP_LIST; do
 
   FS_TRACE INFO "Starting backup for: $BACKUP"    
     $SH_DIR/backup.sh $ARGS $BACKUP
-
+  FS_TRACE INFO "Completed backup for: $BACKUP"
 done
